@@ -79,19 +79,28 @@ class Stall:
         self.earnings = earnings
     
     def process_order(self, name, quantity):
-        #potential for other actions (see instructions)
+        #potential for other actions (see instructions) / check
         if self.inventory[name] > quantity:
             self.inventory[name] -= quantity
          
     def has_item(self, foodName, quantity):
-        #finish implementing
-        pass 
+        #check
+        if self.inventory[foodName] > quantity:
+            return True
+        return False
+         
     def stock_up(self, foodName, quantity):
-        #finish implementing
-        pass 
+        #check
+        if foodName in self.inventory.keys():
+            self.inventory[foodName] += quantity
+        else:
+            self.inventory[foodName] = quantity 
+         
     def compute_cost(self, quantity):
-        #finish implementing
-        pass 
+        #check
+        totalCost = quantity * self.cost
+        return totalCost
+
     def __str__(self):
         return("Hello we are ", self.name, ". This is the current menu ", self.inventory.keys(), ". We charge $", self.cost, " per item. We have $", self.earnings, " in total")
 
@@ -170,7 +179,7 @@ class TestAllMethods(unittest.TestCase):
         #can you correct them?
         self.assertEqual(self.s1.compute_cost(self.s1,5), 51)
         self.assertEqual(self.s3.compute_cost(self.s3,6), 45)
-
+    
 	# Check that the stall can properly see when it is empty
     def test_has_item(self):
         # Set up to run test cases
@@ -200,18 +209,39 @@ class TestAllMethods(unittest.TestCase):
 ### Write main function
 def main():
     #Create different objects 
+    mushroom_inventory = {"Maitake": 6, "Portabello": 12, "Oyster": 30}
+    veggie_inventory = {"Spinach": 15, "Carrot": 24, "Cabbage": 24}
+    fruit_inventory = {"Plum": 16, "Apple": 22, "Orange": 15}
+
+    yaseminCustomer = Customer("Yasemin", 125)
+    aylinCustomer = Customer("Aylin", 190)
+    mayaCustomer = Customer("Maya", 79)
+
+    mushroomStall = Stall("Mushroom Manshion", mushroom_inventory, 12)
+    veggieStall = Stall("Vegetable Station", veggie_inventory, 6)
+    fruitStall = Stall("Fruit Station", fruit_inventory, 9)
+
+    mushroomCashier = Cashier("Jane", [mushroomStall])
+    produceCashier = Cashier("John", [veggieStall, fruitStall])
 
     #Try all cases in the validate_order function
     #Below you need to have *each customer instance* try the four cases
     #case 1: the cashier does not have the stall 
-    
-    #case 2: the casher has the stall, but not enough ordered food or the ordered food item
-    
+    yaseminCustomer.validate_order(mushroomCashier, veggieStall, "Spinach", 5)
+    aylinCustomer.validate_order(mushroomCashier, veggieStall, "Spinach", 5)
+    mayaCustomer.validate_order(mushroomCashier, veggieStall, "Spinach", 5)
+    #case 2: the cashier has the stall, but not enough ordered food or the ordered food item
+    yaseminCustomer.validate_order(mushroomCashier, mushroomStall, "Maitake", 9)
+    aylinCustomer.validate_order(mushroomCashier, mushroomStall, "Maitake", 9)
+    mayaCustomer.validate_order(mushroomCashier, mushroomStall, "Maitake", 9)
     #case 3: the customer does not have enough money to pay for the order: 
-    
+    yaseminCustomer.validate_order(produceCashier, veggieStall, "Carrot", 20)
+    aylinCustomer.validate_order(produceCashier, fruitStall, "Apple", 22)
+    mayaCustomer.validate_order(mushroomCashier, mushroomStall, "Portabello", 10)
     #case 4: the customer successfully places an order
-
-    pass
+    yaseminCustomer.validate_order(mushroomCashier, mushroomStall, "Oyster", 1)
+    aylinCustomer.validate_order(produceCashier, veggieStall, "Spinach", 1)
+    mayaCustomer.validate_order(produceCashier, fruitStall, "Orange", 2)
 
 if __name__ == "__main__":
 	main()
