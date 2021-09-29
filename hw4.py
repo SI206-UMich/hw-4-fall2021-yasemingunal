@@ -80,13 +80,13 @@ class Stall:
     
     def process_order(self, name, quantity):
         #potential for other actions (see instructions) / check
-        if self.inventory[name] > quantity:
+        if self.inventory[name] >= quantity:
             self.inventory[name] -= quantity
          
     def has_item(self, foodName, quantity):
-        #check
-        if self.inventory[foodName] > quantity:
-            return True
+        if foodName in self.inventory.keys():
+            if self.inventory[foodName] >= quantity:
+                return True
         return False
          
     def stock_up(self, foodName, quantity):
@@ -177,34 +177,37 @@ class TestAllMethods(unittest.TestCase):
     def test_compute_cost(self):
         #what's wrong with the following statements?
         #can you correct them?
-        self.assertEqual(self.s1.compute_cost(self.s1,5), 51)
-        self.assertEqual(self.s3.compute_cost(self.s3,6), 45)
+        #self.assertEqual(self.s1.compute_cost(self.s1,5), 51)
+        self.assertEqual(self.s1.compute_cost(5), 50) #totalcost = 5 * 10 = 50
+        #self.assertEqual(self.s3.compute_cost(self.s3,6), 45)
+        self.assertEqual(self.s3.compute_cost(6), 42) #totalcost = 6 * 7 =42
     
 	# Check that the stall can properly see when it is empty
     def test_has_item(self):
         # Set up to run test cases
-
         # Test to see if has_item returns True when a stall has enough items left
         # Please follow the instructions below to create three different kinds of test cases 
         # Test case 1: the stall does not have this food item: 
-        
+        self.assertEqual(self.s1.has_item("Burrito", 4), False)
         # Test case 2: the stall does not have enough food item: 
-        
+        self.assertEqual(self.s1.has_item("Burger", 50), False)
         # Test case 3: the stall has the food item of the certain quantity: 
-        pass
+        self.assertEqual(self.s1.has_item("Taco", 12), True)
 
 	# Test validate order
     def test_validate_order(self):
 		# case 1: test if a customer doesn't have enough money in their wallet to order
+        #self.assertEqual(self.f2.validate_order(self.c1, self.s2, "Taco", 49), "Don't have enough money for that :( Please reload more money!")
 
-		# case 2: test if the stall doesn't have enough food left in stock
-
+        # case 2: test if the stall doesn't have enough food left in stock
+        self.assertEqual(self.f2.validate_order(self.c2, self.s3, "Burger", 72), "Our stall has run out of Burger :( Please try a different stall!")
 		# case 3: check if the cashier can order item from that stall
-        pass
-
+        #self.assertEqual(self.f1.validate_order(self.c1, self.s3, "Taco", 1), **what goes here** )
+        
     # Test if a customer can add money to their wallet
     def test_reload_money(self):
-        pass
+        self.assertEqual(self.f1.reload_money(20), 120) #NOT SURE CHANGE ACCORDING TO DEFAULT VAL OF MONEY IN CUSTOMER WALLET
+        self.assertEqual(self.f2.reload_money(30), 150) 
     
 ### Write main function
 def main():
