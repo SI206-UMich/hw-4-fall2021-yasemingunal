@@ -79,7 +79,6 @@ class Stall:
         self.earnings = earnings
     
     def process_order(self, name, quantity):
-        #potential for other actions (see instructions) / check
         if self.inventory[name] >= quantity:
             self.inventory[name] -= quantity
          
@@ -90,14 +89,12 @@ class Stall:
         return False
          
     def stock_up(self, foodName, quantity):
-        #check
         if foodName in self.inventory.keys():
             self.inventory[foodName] += quantity
         else:
             self.inventory[foodName] = quantity 
          
     def compute_cost(self, quantity):
-        #check
         totalCost = quantity * self.cost
         return totalCost
 
@@ -109,13 +106,16 @@ class TestAllMethods(unittest.TestCase):
     
     def setUp(self):
         inventory = {"Burger":40, "Taco":50}
+        extraTestInventory = {"Ice Cream":10, "Gelato": 12}
         self.f1 = Customer("Ted")
         self.f2 = Customer("Morgan", 150)
         self.s1 = Stall("The Grill Queen", inventory, cost = 10)
         self.s2 = Stall("Tamale Train", inventory, cost = 9)
         self.s3 = Stall("The Streatery", inventory)
+        self.s4 = Stall("Extra for Test!", extraTestInventory)
         self.c1 = Cashier("West")
         self.c2 = Cashier("East")
+        self.c3 = Cashier("Extra", [extraTestInventory])
         #the following codes show that the two cashiers have the same directory
         for c in [self.c1, self.c2]:
             for s in [self.s1,self.s2,self.s3]:
@@ -175,35 +175,54 @@ class TestAllMethods(unittest.TestCase):
 
 	# Test that computed cost works properly.
     def test_compute_cost(self):
-        #what's wrong with the following statements?
+        #what's wrong with the following statements? 
+                #There should not be "self.s1"/"self.s3" inside the compute_cost function! 
+                #also the costs were calculated incorrectly
         #can you correct them?
-        #self.assertEqual(self.s1.compute_cost(self.s1,5), 51)
         self.assertEqual(self.s1.compute_cost(5), 50) #totalcost = 5 * 10 = 50
-        #self.assertEqual(self.s3.compute_cost(self.s3,6), 45)
         self.assertEqual(self.s3.compute_cost(6), 42) #totalcost = 6 * 7 =42
     
 	# Check that the stall can properly see when it is empty
     def test_has_item(self):
         # Set up to run test cases
         # Test to see if has_item returns True when a stall has enough items left
+        self.assertEqual(self.s1.has_item("Burger", 3), True)
         # Please follow the instructions below to create three different kinds of test cases 
         # Test case 1: the stall does not have this food item: 
         self.assertEqual(self.s1.has_item("Burrito", 4), False)
+        self.assertEqual(self.s2.has_item("Pita Wrap", 2), False)
         # Test case 2: the stall does not have enough food item: 
         self.assertEqual(self.s1.has_item("Burger", 50), False)
+        self.assertEqual(self.s2.has_item("Taco", 86), False)
         # Test case 3: the stall has the food item of the certain quantity: 
         self.assertEqual(self.s1.has_item("Taco", 12), True)
+        self.assertEqual(self.s3.has_item("Burger", 5), True)
 
 	# Test validate order
     def test_validate_order(self):
 		# case 1: test if a customer doesn't have enough money in their wallet to order
-        #self.assertEqual(self.f2.validate_order(self.c1, self.s2, "Taco", 49), "Don't have enough money for that :( Please reload more money!")
+        self.f1.validate_order(self.c1, self.s1, "Burger", 30) # 30 burgers * $10 = $300
+        self.assertEqual(self.f1.wallet, 100) # Tom only has $100 (order will fail, wallet amount will stay same)
+
+        self.f2.validate_order(self.c2, self.s2, "Taco", 30) #30 tacos * $9 = $270 
+        self.assertEqual(self.f2.wallet, 150) #Morgan only has $150 (order will fail, wallet amount will stay same)
+     
         # case 2: test if the stall doesn't have enough food left in stock
-        #self.assertEqual(self.f2.validate_order(self.c2, self.s3, "Burger", 72), "Our stall has run out of Burger :( Please try a different stall!")
-        #print(self.f2.validate_order(self.c2, self.s3, "Burger", 72), "Our stall has run out of Burger :( Please try a different stall!")
+        self.f1.validate_order(self.c1, self.s1, "Burger", 50)
+        self.assertEqual(self.s2.inventory["Burger"], 40) #stall only has 40 burgers (order will fail, quantity will not change)
+
+        self.f2.validate_order(self.c2, self.s2, "Taco", 70)
+        self.assertEqual(self.s2.inventory["Taco"], 50) #stall only has 50 burgers (order will fail, quantity will not change)
+
 		# case 3: check if the cashier can order item from that stall
-        #self.assertEqual(self.f1.validate_order(self.c1, self.s3, "Taco", 1), **what goes here** )
-        pass 
+        self.f1.validate_order(self.c1, self.s1, "Burger", 10)
+        self.assertEqual(self.s1.inventory["Burger"], 30) #this cashier has this stall (order will go through, inventory wil decrease by 10)
+
+        self.f2.validate_order(self.c2, self.s2, "Taco", 2)
+        self.assertEqual(self.s2.inventory["Taco"], 48) #this cashier has this stall (order will go through, inventory wil decrease by 2) 
+        # case 4: check if vendor doesn't have the stall
+        self.f2.validate_order(self.c3, self.s2, "Burger", 4)
+        self.assertEqual(self.s2.inventory["Burger"], 30) #this vendor doesn't have this stall (order will fail, inventory won't change from last decrease in line 219)
 
     # Test if a customer can add money to their wallet
     def test_reload_money(self):
